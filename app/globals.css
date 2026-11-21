@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-dark;
+  }
+  .btn-secondary {
+    @apply btn border border-slate-300 bg-white text-ink hover:bg-slate-50;
+  }
+  .btn-danger {
+    @apply btn bg-danger text-white hover:bg-red-600;
+  }
+  .btn-success {
+    @apply btn bg-success text-white hover:bg-emerald-600;
+  }
+  .input {
+    /* 16px on phones stops iOS Safari from zooming in when an input is focused */
+    @apply block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 sm:text-sm placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-slate-700;
+  }
+  .nav-link {
+    @apply inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-indigo-100 transition hover:bg-white/10 hover:text-white;
+  }
+  .alert-error {
+    @apply rounded-lg border border-red-200 bg-danger-light px-4 py-3 text-sm text-red-800;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+}
