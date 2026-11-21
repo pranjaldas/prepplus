@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useFormState } from 'react-dom';
-import { CheckCircle2, FileSpreadsheet, Loader2, PartyPopper, Save } from 'lucide-react';
+import { BookOpenCheck, CheckCircle2, FileSpreadsheet, Loader2, PartyPopper, Save } from 'lucide-react';
 import { checkSheet, createExam } from '@/app/actions/exams';
 import { SubmitButton } from '@/components/SubmitButton';
 import { CopyButton } from '@/components/CopyButton';
@@ -50,7 +50,10 @@ export function CreateExamForm() {
           <Link href="/admin/dashboard" className="btn-secondary">
             Back to exams
           </Link>
-          <Link href={`/admin/exams/${id}`} className="btn-primary">
+          <Link href={`/admin/exams/${id}/review`} className="btn-primary">
+            <BookOpenCheck className="h-4 w-4" /> Review questions
+          </Link>
+          <Link href={`/admin/exams/${id}`} className="btn-secondary">
             View exam results page
           </Link>
         </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronRight, ClipboardList, Inbox, PlusCircle, Users } from 'lucide-react';
+import { BookOpenCheck, ChevronRight, ClipboardList, Inbox, PlusCircle, Users } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { CopyButton } from '@/components/CopyButton';
@@ -79,9 +79,18 @@ export default async function AdminDashboardPage() {
                       <Users className="h-3.5 w-3.5 text-primary" />
                       {exam.exam_attempts?.[0]?.count ?? 0} appeared
                     </span>
-                    <Link href={`/admin/exams/${exam.id}`} className="btn-secondary px-3 py-1.5 text-xs">
-                      View results <ChevronRight className="h-3.5 w-3.5" />
-                    </Link>
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/admin/exams/${exam.id}/review`}
+                        className="btn-secondary px-3 py-1.5 text-xs"
+                        aria-label="Review questions"
+                      >
+                        <BookOpenCheck className="h-3.5 w-3.5" /> Questions
+                      </Link>
+                      <Link href={`/admin/exams/${exam.id}`} className="btn-secondary px-3 py-1.5 text-xs">
+                        Results <ChevronRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
                   </div>
                 </li>
               );
@@ -99,7 +108,7 @@ export default async function AdminDashboardPage() {
                   <th className="px-3 py-3">Marking</th>
                   <th className="px-3 py-3 text-center">Candidates</th>
                   <th className="hidden px-3 py-3 lg:table-cell">Created</th>
-                  <th className="px-5 py-3 text-right">Results</th>
+                  <th className="px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -127,10 +136,20 @@ export default async function AdminDashboardPage() {
                         </span>
                       </td>
                       <td className="hidden px-3 py-3 text-slate-600 lg:table-cell">{formatDateTime(exam.created_at)}</td>
-                      <td className="px-5 py-3 text-right">
-                        <Link href={`/admin/exams/${exam.id}`} className="btn-secondary px-3 py-1.5 text-xs">
-                          View <ChevronRight className="h-3.5 w-3.5" />
-                        </Link>
+                      <td className="px-5 py-3">
+                        <div className="flex justify-end gap-2">
+                          <Link
+                            href={`/admin/exams/${exam.id}/review`}
+                            className="btn-secondary px-3 py-1.5 text-xs"
+                            title="Review questions"
+                          >
+                            <BookOpenCheck className="h-3.5 w-3.5" />
+                            <span className="hidden xl:inline">Questions</span>
+                          </Link>
+                          <Link href={`/admin/exams/${exam.id}`} className="btn-secondary px-3 py-1.5 text-xs">
+                            Results <ChevronRight className="h-3.5 w-3.5" />
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   );

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, CalendarClock, Clock, Users } from 'lucide-react';
+import { ArrowLeft, BookOpenCheck, CalendarClock, Clock, Users } from 'lucide-react';
 import { DownloadPdfButton, ViewPdfButton } from '@/components/PdfButtons';
 import { requireAdmin } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
@@ -63,6 +63,9 @@ export default async function ExamResultsPage({ params }: { params: { id: string
               <span>{markingSummary(exam)}</span>
             </div>
           </div>
+          <Link href={`/admin/exams/${exam.id}/review`} className="btn-primary shrink-0">
+            <BookOpenCheck className="h-4 w-4" /> Review questions
+          </Link>
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 lg:grid-cols-4">
