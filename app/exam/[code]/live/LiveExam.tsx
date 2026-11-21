@@ -339,15 +339,18 @@ export function LiveExam({
         </div>
       </div>
 
-      <div className="mx-auto grid w-full max-w-6xl flex-1 items-start gap-6 px-3 pb-24 pt-4 sm:px-4 sm:py-6 lg:grid-cols-[1fr_300px]">
+      {/* Large screens: both panels fill the viewport below the header at equal height */}
+      <div className="mx-auto grid w-full max-w-6xl flex-1 items-start gap-6 px-3 pb-24 pt-4 sm:px-4 sm:py-6 lg:h-[calc(100dvh-4rem)] lg:flex-none lg:grid-cols-[1fr_300px] lg:grid-rows-[minmax(0,1fr)] lg:items-stretch">
         {/* Question panel */}
-        <section className="card flex flex-col p-4 sm:p-8">
-          <div className="mb-4 hidden items-center justify-between gap-2 lg:flex">
+        <section className="card flex flex-col p-4 sm:p-8 lg:min-h-0">
+          <div className="mb-4 hidden shrink-0 items-center justify-between gap-2 lg:flex">
             <span className="badge bg-indigo-50 text-ink">
               Question {current + 1} of {total}
             </span>
           </div>
 
+          {/* Long questions scroll here on large screens; the buttons below stay put */}
+          <div className="lg:-mr-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-3 lg:[scrollbar-width:thin]">
           <h2 className="whitespace-pre-wrap break-words text-base font-medium leading-relaxed text-slate-900 sm:text-lg">
             {q.question}
           </h2>
@@ -383,9 +386,10 @@ export function LiveExam({
               );
             })}
           </div>
+          </div>
 
           {/* Actions: fixed bottom bar on phones, inline on tablet/desktop */}
-          <div className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 gap-2 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(15,23,42,0.06)] sm:static sm:z-auto sm:mt-6 sm:flex sm:items-center sm:justify-between sm:gap-3 sm:border-slate-100 sm:bg-transparent sm:p-0 sm:pt-6 sm:shadow-none">
+          <div className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 gap-2 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(15,23,42,0.06)] sm:static sm:z-auto sm:mt-6 sm:flex lg:shrink-0 sm:items-center sm:justify-between sm:gap-3 sm:border-slate-100 sm:bg-transparent sm:p-0 sm:pt-6 sm:shadow-none">
             <button
               type="button"
               onClick={() => goTo(current - 1)}
@@ -417,7 +421,7 @@ export function LiveExam({
         </section>
 
         {/* Desktop palette: fits the viewport, the number grid scrolls, Submit stays visible */}
-        <aside className="card sticky top-[5.5rem] hidden max-h-[calc(100dvh-7rem)] flex-col p-5 lg:flex">
+        <aside className="card hidden min-h-0 flex-col p-5 lg:flex">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-ink">Question Navigator</h3>
             <span className="text-xs text-slate-500">
