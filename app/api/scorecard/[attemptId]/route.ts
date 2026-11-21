@@ -1,20 +1,34 @@
 import { createElement, type ReactElement } from 'react';
-import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer';
+import type { DocumentProps } from '@react-pdf/renderer';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getFullSheetData, SheetError } from '@/lib/googleSheets';
 import { sanitiseAnswers } from '@/lib/grading';
-import { ScorecardDocument } from '@/lib/pdf/ScorecardDocument';
 import type { Exam, ExamAttempt, Profile } from '@/lib/types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 function slug(s: string) {
   return s.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'scorecard';
 }
 
-export async function GET(request: Request, { params }: { params: { attemptId: string } }) {
+export async function GET(request: Request, ctx: { params: { attemptId: string } }) {
+  try {
+    return await handle(request, ctx);
+  } catch (err) {
+    // Log the full error to the server logs and give the browser a readable reason.
+    console.error('[scorecard] PDF generation failed', err);
+    const reason = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    return new Response(`PDF generation failed. ${reason}`.slice(0, 300), {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+    });
+  }
+}
+
+async function handle(request: Request, { params }: { params: { attemptId: string } }) {
   if (!/^[0-9a-f-]{36}$/i.test(params.attemptId)) {
     return new Response('Not found', { status: 404 });
   }
@@ -60,6 +74,12 @@ export async function GET(request: Request, { params }: { params: { attemptId: s
   }
 
   const answers = sanitiseAnswers(answerRow?.answers_json ?? {}, questions.length);
+
+  // Loaded on demand so a library load failure is caught and reported above.
+  const [{ renderToBuffer }, { ScorecardDocument }] = await Promise.all([
+    import('@react-pdf/renderer'),
+    import('@/lib/pdf/ScorecardDocument'),
+  ]);
 
   const doc = createElement(ScorecardDocument, {
     candidate: { name: candidate.full_name, email: candidate.email, phone: candidate.phone },
