@@ -8,12 +8,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Eraser,
-  Grid3x3,
   Loader2,
   Send,
   Timer,
   User,
-  X,
 } from 'lucide-react';
 import { submitExam } from '@/app/actions/attempts';
 import { LogoMark } from '@/components/Logo';
@@ -65,12 +63,13 @@ export function LiveExam({
   const [remaining, setRemaining] = useState<number | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [paletteOpen, setPaletteOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const submittingRef = useRef(false);
   const autoSubmittedRef = useRef(false);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const answersRef = useRef<AnswersMap>({});
   const skewRef = useRef(0);
   answersRef.current = answers;
@@ -178,10 +177,30 @@ export function LiveExam({
       if (idx < 0 || idx >= total) return;
       setCurrent(idx);
       setVisited((prev) => new Set(prev).add(idx));
-      setPaletteOpen(false);
     },
     [total],
   );
+
+  // Keep the current question's number in view in both navigators.
+  useEffect(() => {
+    const strip = stripRef.current;
+    const stripBtn = strip?.querySelector<HTMLElement>(`[data-q="${current}"]`);
+    if (strip && stripBtn && strip.offsetParent !== null) {
+      strip.scrollTo({
+        left: stripBtn.offsetLeft - strip.clientWidth / 2 + stripBtn.offsetWidth / 2,
+        behavior: 'smooth',
+      });
+    }
+    const grid = gridRef.current;
+    const gridBtn = grid?.querySelector<HTMLElement>(`[data-q="${current}"]`);
+    if (grid && gridBtn && grid.offsetParent !== null) {
+      const top = gridBtn.offsetTop;
+      const bottom = top + gridBtn.offsetHeight;
+      if (top < grid.scrollTop + 8 || bottom > grid.scrollTop + grid.clientHeight - 8) {
+        grid.scrollTo({ top: top - grid.clientHeight / 2 + gridBtn.offsetHeight / 2, behavior: 'smooth' });
+      }
+    }
+  }, [current, hydrated]);
 
   const q = questions[current];
   const qKey = String(q?.index ?? current + 1);
@@ -226,55 +245,31 @@ export function LiveExam({
     );
   }
 
-  const palette = (
-    <div>
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-ink">Question Navigator</h3>
-        <span className="text-xs text-slate-500">
-          {answeredCount}/{total} answered
-        </span>
-      </div>
-      <div className="grid grid-cols-6 gap-2 sm:grid-cols-8 lg:grid-cols-5">
-        {questions.map((item, i) => {
-          const isAnswered = !!answers[String(item.index)];
-          const isCurrent = i === current;
-          const isVisited = visited.has(i);
-          const tone = isAnswered
-            ? 'bg-success text-white border-success'
-            : isVisited
-              ? 'bg-danger-light text-red-700 border-red-200'
-              : 'bg-slate-50 text-slate-600 border-slate-200';
-          return (
-            <button
-              key={item.index}
-              type="button"
-              onClick={() => goTo(i)}
-              aria-label={`Question ${item.index}${isAnswered ? ', answered' : ''}`}
-              aria-current={isCurrent ? 'step' : undefined}
-              className={`h-10 rounded-lg border text-sm font-semibold transition hover:brightness-95 ${tone} ${
-                isCurrent ? 'ring-2 ring-primary ring-offset-2' : ''
-              }`}
-            >
-              {item.index}
-            </button>
-          );
-        })}
-      </div>
-      <div className="mt-4 space-y-1.5 text-xs text-slate-600">
-        <Legend className="bg-success" label="Answered" />
-        <Legend className="border border-red-200 bg-danger-light" label="Visited, not answered" />
-        <Legend className="border border-slate-200 bg-slate-50" label="Not visited" />
-      </div>
+  function paletteButton(item: SanitizedQuestion, i: number, sizeClass: string) {
+    const isAnswered = !!answers[String(item.index)];
+    const isCurrent = i === current;
+    const isVisited = visited.has(i);
+    const tone = isAnswered
+      ? 'bg-success text-white border-success'
+      : isVisited
+        ? 'bg-danger-light text-red-700 border-red-200'
+        : 'bg-slate-50 text-slate-600 border-slate-200';
+    return (
       <button
+        key={item.index}
         type="button"
-        onClick={() => setConfirmOpen(true)}
-        disabled={locked}
-        className="btn-danger mt-5 w-full"
+        data-q={i}
+        onClick={() => goTo(i)}
+        aria-label={`Question ${item.index}${isAnswered ? ', answered' : ''}`}
+        aria-current={isCurrent ? 'step' : undefined}
+        className={`rounded-lg border text-sm font-semibold transition hover:brightness-95 ${sizeClass} ${tone} ${
+          isCurrent ? 'ring-2 ring-primary ring-offset-2' : ''
+        }`}
       >
-        <Send className="h-4 w-4" /> Submit Exam
+        {item.index}
       </button>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
@@ -317,20 +312,40 @@ export function LiveExam({
         </div>
       )}
 
-      <div className="mx-auto grid w-full max-w-6xl flex-1 gap-6 px-3 pb-24 pt-4 sm:px-4 sm:py-6 lg:grid-cols-[1fr_300px]">
-        {/* Question panel */}
-        <section className="card flex flex-col p-4 sm:p-8">
-          <div className="mb-4 flex items-center justify-between gap-2">
-            <span className="badge bg-indigo-50 text-ink">
-              Question {current + 1} of {total}
+      {/* Phones & tablets: horizontal question strip pinned under the header */}
+      <div className="sticky top-16 z-20 border-b border-slate-200 bg-white shadow-sm lg:hidden">
+        <div className="mx-auto max-w-6xl px-3 pt-2 sm:px-4">
+          <div className="flex items-center justify-between gap-2 text-xs">
+            <span className="font-semibold text-ink">
+              Q {current + 1}/{total}
+              <span className="ml-2 font-normal text-slate-500">{answeredCount} answered</span>
             </span>
             <button
               type="button"
-              onClick={() => setPaletteOpen(true)}
-              className="btn-secondary px-3 py-1.5 text-xs lg:hidden"
+              onClick={() => setConfirmOpen(true)}
+              disabled={locked}
+              className="btn-danger px-3 py-1 text-xs"
             >
-              <Grid3x3 className="h-4 w-4" /> Navigator
+              <Send className="h-3.5 w-3.5" /> Submit
             </button>
+          </div>
+          <div
+            ref={stripRef}
+            className="relative -mx-3 flex gap-2 overflow-x-auto px-3 py-2.5 [scrollbar-width:thin] sm:-mx-4 sm:px-4"
+            aria-label="Question navigator"
+          >
+            {questions.map((item, i) => paletteButton(item, i, 'h-9 min-w-[2.25rem] shrink-0 px-1.5'))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto grid w-full max-w-6xl flex-1 items-start gap-6 px-3 pb-24 pt-4 sm:px-4 sm:py-6 lg:grid-cols-[1fr_300px]">
+        {/* Question panel */}
+        <section className="card flex flex-col p-4 sm:p-8">
+          <div className="mb-4 hidden items-center justify-between gap-2 lg:flex">
+            <span className="badge bg-indigo-50 text-ink">
+              Question {current + 1} of {total}
+            </span>
           </div>
 
           <h2 className="whitespace-pre-wrap break-words text-base font-medium leading-relaxed text-slate-900 sm:text-lg">
@@ -370,7 +385,7 @@ export function LiveExam({
           </div>
 
           {/* Actions: fixed bottom bar on phones, inline on tablet/desktop */}
-          <div className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 gap-2 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(15,23,42,0.06)] sm:static sm:z-auto sm:mt-auto sm:flex sm:items-center sm:justify-between sm:gap-3 sm:border-slate-100 sm:bg-transparent sm:p-0 sm:pt-6 sm:shadow-none">
+          <div className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 gap-2 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(15,23,42,0.06)] sm:static sm:z-auto sm:mt-6 sm:flex sm:items-center sm:justify-between sm:gap-3 sm:border-slate-100 sm:bg-transparent sm:p-0 sm:pt-6 sm:shadow-none">
             <button
               type="button"
               onClick={() => goTo(current - 1)}
@@ -401,26 +416,37 @@ export function LiveExam({
           </div>
         </section>
 
-        {/* Desktop palette */}
-        <aside className="card hidden h-fit p-5 lg:sticky lg:top-24 lg:block">{palette}</aside>
-      </div>
-
-      {/* Mobile palette drawer */}
-      {paletteOpen && (
-        <div className="fixed inset-0 z-40 flex items-end bg-black/40 lg:hidden" onClick={() => setPaletteOpen(false)}>
-          <div
-            className="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:mb-6 sm:max-w-xl sm:rounded-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-2 flex justify-end">
-              <button type="button" onClick={() => setPaletteOpen(false)} aria-label="Close navigator">
-                <X className="h-5 w-5 text-slate-500" />
-              </button>
-            </div>
-            {palette}
+        {/* Desktop palette: fits the viewport, the number grid scrolls, Submit stays visible */}
+        <aside className="card sticky top-[5.5rem] hidden max-h-[calc(100dvh-7rem)] flex-col p-5 lg:flex">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-ink">Question Navigator</h3>
+            <span className="text-xs text-slate-500">
+              {answeredCount}/{total} answered
+            </span>
           </div>
-        </div>
-      )}
+          <div
+            ref={gridRef}
+            className="relative -mx-2 min-h-0 flex-1 overflow-y-auto px-2 py-2 [scrollbar-width:thin]"
+          >
+            <div className="grid grid-cols-5 gap-2">
+              {questions.map((item, i) => paletteButton(item, i, 'h-10'))}
+            </div>
+          </div>
+          <div className="mt-3 shrink-0 space-y-1.5 border-t border-slate-100 pt-3 text-xs text-slate-600">
+            <Legend className="bg-success" label="Answered" />
+            <Legend className="border border-red-200 bg-danger-light" label="Visited, not answered" />
+            <Legend className="border border-slate-200 bg-slate-50" label="Not visited" />
+          </div>
+          <button
+            type="button"
+            onClick={() => setConfirmOpen(true)}
+            disabled={locked}
+            className="btn-danger mt-4 w-full shrink-0"
+          >
+            <Send className="h-4 w-4" /> Submit Exam
+          </button>
+        </aside>
+      </div>
 
       {/* Submit confirmation */}
       {confirmOpen && (
