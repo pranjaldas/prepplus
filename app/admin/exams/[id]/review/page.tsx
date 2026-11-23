@@ -1,18 +1,18 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { AlertTriangle, ArrowLeft, CheckCircle2, Clock, ExternalLink, ListChecks } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Clock, ExternalLink, ListChecks } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { getFullSheetData, SheetError } from '@/lib/googleSheets';
 import { CopyButton } from '@/components/CopyButton';
 import { markingSummary } from '@/lib/format';
-import { OPTION_KEYS, type Exam, type FullQuestion } from '@/lib/types';
+import type { Exam, FullQuestion } from '@/lib/types';
+import { ReviewQuestionCard } from '@/components/ReviewQuestionCard';
 
 export const metadata: Metadata = { title: 'Review Questions' };
 export const dynamic = 'force-dynamic';
 
-const LETTERS = ['A', 'B', 'C', 'D'];
 
 export default async function ReviewQuestionsPage({ params }: { params: { id: string } }) {
   await requireAdmin();
@@ -91,63 +91,9 @@ export default async function ReviewQuestionsPage({ params }: { params: { id: st
 
       {/* Questions */}
       <ol className="space-y-4">
-        {questions.map((q) => {
-          const correctIdx = q.correct_key ? OPTION_KEYS.indexOf(q.correct_key) : -1;
-          return (
-            <li key={q.index} className="card p-4 sm:p-6">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <span className="badge bg-indigo-50 font-semibold text-ink">Question {q.index}</span>
-                {correctIdx < 0 && (
-                  <span className="badge bg-amber-100 text-amber-800">
-                    <AlertTriangle className="h-3 w-3" /> No valid answer
-                  </span>
-                )}
-              </div>
-
-              <p className="whitespace-pre-wrap break-words font-medium leading-relaxed text-slate-900">
-                {q.question}
-              </p>
-
-              <div className="mt-4 space-y-2">
-                {q.options.map((opt, i) => {
-                  const isCorrect = i === correctIdx;
-                  return (
-                    <div
-                      key={i}
-                      className={`flex items-start gap-3 rounded-lg border px-3 py-2.5 text-sm ${
-                        isCorrect
-                          ? 'border-success bg-success-light text-emerald-900'
-                          : 'border-slate-200 bg-white text-slate-700'
-                      }`}
-                    >
-                      <span
-                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-bold ${
-                          isCorrect ? 'bg-success text-white' : 'bg-slate-100 text-slate-500'
-                        }`}
-                      >
-                        {LETTERS[i]}
-                      </span>
-                      <span className="min-w-0 flex-1 whitespace-pre-wrap break-words pt-0.5">{opt}</span>
-                      {isCorrect && (
-                        <span className="inline-flex shrink-0 items-center gap-1 pt-0.5 text-xs font-bold text-emerald-700">
-                          <CheckCircle2 className="h-4 w-4" />
-                          <span className="hidden sm:inline">CORRECT</span>
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <p className="mt-3 text-sm text-slate-600">
-                Correct answer:{' '}
-                <span className="font-semibold text-emerald-700">
-                  {correctIdx >= 0 ? `${LETTERS[correctIdx]}. ${q.options[correctIdx]}` : q.correct_option || '—'}
-                </span>
-              </p>
-            </li>
-          );
-        })}
+        {questions.map((q) => (
+          <ReviewQuestionCard key={q.index} question={q} mode="admin" />
+        ))}
       </ol>
 
       {!loadError && questions.length === 0 && (

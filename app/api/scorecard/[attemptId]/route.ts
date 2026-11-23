@@ -50,8 +50,8 @@ async function handle(request: Request, { params }: { params: { attemptId: strin
     .maybeSingle<ExamAttempt>();
   if (!attempt) return new Response('Not found', { status: 404 });
 
-  // Only the candidate themselves or an admin may see a scorecard.
-  if (attempt.candidate_id !== user.id && viewer?.role !== 'ADMIN') {
+  // PDF scorecards are admin-only; candidates review their answers on /exam/[code]/result.
+  if (viewer?.role !== 'ADMIN') {
     return new Response('Forbidden', { status: 403 });
   }
   if (attempt.status !== 'submitted') {

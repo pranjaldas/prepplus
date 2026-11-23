@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ClipboardList, Eye, PlayCircle } from 'lucide-react';
-import { DownloadPdfButton } from '@/components/PdfButtons';
 import { requireProfile } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { formatDateTime, formatNumber } from '@/lib/format';
@@ -91,12 +90,9 @@ export default async function CandidateDashboardPage() {
                           <div className="text-xs text-slate-600">Unanswered</div>
                         </div>
                       </div>
-                      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2">
-                        <Link href={`/exam/${encodeURIComponent(code)}/result`} className="btn-secondary flex-1">
-                          <Eye className="h-4 w-4" /> View Scorecard
-                        </Link>
-                        <DownloadPdfButton attemptId={a.id} className="btn-primary flex-1" />
-                      </div>
+                      <Link href={`/exam/${encodeURIComponent(code)}/result`} className="btn-primary mt-4 w-full">
+                        <Eye className="h-4 w-4" /> View Scorecard &amp; Answers
+                      </Link>
                     </>
                   ) : (
                     <Link href={`/exam/${encodeURIComponent(code)}/instructions`} className="btn-primary mt-4">
