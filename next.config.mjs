@@ -6,7 +6,8 @@ const nextConfig = {
     // pdfkit loads its built-in fonts lazily via `require('#standard-fonts/…')`,
     // which Vercel's file tracer can't follow. Ship them with the PDF route explicitly.
     outputFileTracingIncludes: {
-      '/api/scorecard/**': ['./node_modules/pdfkit/js/standard-fonts/**/*'],
+      // Also ship the embedded Noto fonts (read from disk at render time).
+      '/api/scorecard/**': ['./node_modules/pdfkit/js/standard-fonts/**/*', './lib/pdf/fonts/**/*'],
     },
   },
 };

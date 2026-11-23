@@ -1,5 +1,30 @@
-import { Document, Page, Path, Rect, StyleSheet, Svg, Text, View } from '@react-pdf/renderer';
+import path from 'path';
+import { Document, Font, Page, Path, Rect, StyleSheet, Svg, Text, View } from '@react-pdf/renderer';
 import { OPTION_KEYS, type AnswersMap, type FullQuestion } from '../types';
+
+// Built-in PDF fonts (Helvetica) only cover Latin text, so Assamese/Bengali questions
+// came out as garbage. Embed Noto fonts instead; each character uses the first font
+// in FONT_STACK that has it. See lib/pdf/fonts/README.md to add more scripts.
+const FONT_DIR = path.join(process.cwd(), 'lib', 'pdf', 'fonts');
+
+Font.register({
+  family: 'NotoSans',
+  fonts: [
+    { src: path.join(FONT_DIR, 'NotoSans-Regular.ttf') },
+    { src: path.join(FONT_DIR, 'NotoSans-Bold.ttf'), fontWeight: 'bold' },
+  ],
+});
+Font.register({
+  family: 'NotoSansBengali',
+  fonts: [
+    { src: path.join(FONT_DIR, 'NotoSansBengali-Regular.ttf') },
+    { src: path.join(FONT_DIR, 'NotoSansBengali-Bold.ttf'), fontWeight: 'bold' },
+  ],
+});
+// Never split words: hyphenating Indic text breaks letter clusters apart.
+Font.registerHyphenationCallback((word) => [word]);
+
+const FONT_STACK = ['NotoSans', 'NotoSansBengali'];
 
 const C = {
   ink: '#1E1B4B',
@@ -14,7 +39,7 @@ const C = {
 };
 
 const s = StyleSheet.create({
-  page: { padding: 36, paddingBottom: 54, fontSize: 10, fontFamily: 'Helvetica', color: '#1E293B' },
+  page: { padding: 36, paddingBottom: 54, fontSize: 10, fontFamily: FONT_STACK, color: '#1E293B' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -25,28 +50,28 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
   brand: { flexDirection: 'row', alignItems: 'center' },
-  brandName: { color: '#FFFFFF', fontSize: 16, fontFamily: 'Helvetica-Bold', marginLeft: 8 },
+  brandName: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
   tagline: { color: '#C7D2FE', fontSize: 8, marginLeft: 8, marginTop: 2 },
   headerRight: { color: '#C7D2FE', fontSize: 8, textAlign: 'right' },
-  title: { fontSize: 15, fontFamily: 'Helvetica-Bold', color: C.ink, marginBottom: 8 },
+  title: { fontSize: 15, fontWeight: 'bold', color: C.ink, marginBottom: 8 },
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 14 },
   infoCell: { width: '50%', marginBottom: 4 },
   infoLabel: { color: C.slate, fontSize: 8 },
-  infoValue: { fontSize: 10, fontFamily: 'Helvetica-Bold' },
+  infoValue: { fontSize: 10, fontWeight: 'bold' },
   statsRow: { flexDirection: 'row', marginBottom: 18 },
   stat: { flex: 1, borderRadius: 6, padding: 10, marginRight: 6, alignItems: 'center' },
-  statValue: { fontSize: 18, fontFamily: 'Helvetica-Bold' },
+  statValue: { fontSize: 18, fontWeight: 'bold' },
   statLabel: { fontSize: 8, marginTop: 2 },
-  sectionTitle: { fontSize: 12, fontFamily: 'Helvetica-Bold', color: C.ink, marginBottom: 8 },
+  sectionTitle: { fontSize: 12, fontWeight: 'bold', color: C.ink, marginBottom: 8 },
   q: { borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10, marginBottom: 10 },
   qHead: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  qNum: { fontFamily: 'Helvetica-Bold', color: C.ink },
-  pill: { fontSize: 8, paddingVertical: 2, paddingHorizontal: 6, borderRadius: 8, fontFamily: 'Helvetica-Bold' },
+  qNum: { fontWeight: 'bold', color: C.ink },
+  pill: { fontSize: 8, paddingVertical: 2, paddingHorizontal: 6, borderRadius: 8, fontWeight: 'bold' },
   qText: { fontSize: 10.5, marginBottom: 6, lineHeight: 1.4 },
   opt: { flexDirection: 'row', padding: 5, borderRadius: 4, marginBottom: 3, borderWidth: 1, borderColor: C.border },
-  optLetter: { width: 16, fontFamily: 'Helvetica-Bold' },
+  optLetter: { width: 16, fontWeight: 'bold' },
   optText: { flex: 1 },
-  optTag: { fontSize: 7.5, fontFamily: 'Helvetica-Bold', marginLeft: 6 },
+  optTag: { fontSize: 7.5, fontWeight: 'bold', marginLeft: 6 },
   answerLine: { flexDirection: 'row', marginTop: 4, fontSize: 9 },
   note: { marginTop: 6, padding: 7, backgroundColor: '#EEF2FF', borderRadius: 4, fontSize: 9, lineHeight: 1.4 },
   footer: {
@@ -196,19 +221,19 @@ export function ScorecardDocument({ candidate, exam, attempt, questions, answers
 
               <View style={s.answerLine}>
                 <Text style={{ color: C.slate }}>Your answer: </Text>
-                <Text style={{ fontFamily: 'Helvetica-Bold', color: !selected ? C.slate : isCorrect ? C.green : C.red }}>
+                <Text style={{ fontWeight: 'bold', color: !selected ? C.slate : isCorrect ? C.green : C.red }}>
                   {selectedIdx >= 0 ? `${LETTERS[selectedIdx]}. ${q.options[selectedIdx]}` : 'Not answered'}
                 </Text>
               </View>
               <View style={s.answerLine}>
                 <Text style={{ color: C.slate }}>Correct answer: </Text>
-                <Text style={{ fontFamily: 'Helvetica-Bold', color: C.green }}>
+                <Text style={{ fontWeight: 'bold', color: C.green }}>
                   {correctIdx >= 0 ? `${LETTERS[correctIdx]}. ${q.options[correctIdx]}` : q.correct_option || '-'}
                 </Text>
               </View>
               {q.note ? (
                 <Text style={s.note}>
-                  <Text style={{ fontFamily: 'Helvetica-Bold' }}>Explanation: </Text>
+                  <Text style={{ fontWeight: 'bold' }}>Explanation: </Text>
                   {q.note}
                 </Text>
               ) : null}
