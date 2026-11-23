@@ -2,9 +2,9 @@
 
 *Precision Mock Exams & Instant Insights*
 
-An online mock examination app. Admins create timed exams backed by a Google Sheet, and candidates join with an exam code. Candidates take the exam once, get graded on the server, and can download a question-by-question PDF review.
+An online mock examination app. Admins create timed exams backed by a Google Sheet, and candidates join with an exam code. Candidates take the exam once, get graded on the server, and can review every question with their answer, the correct answer and an explanation.
 
-**Stack:** Next.js 14 (App Router, TypeScript, Server Actions), Tailwind CSS, Lucide icons, Supabase (Postgres + Auth via `@supabase/ssr`), Google Sheets (CSV export + `papaparse`), `@react-pdf/renderer`.
+**Stack:** Next.js 14 (App Router, TypeScript, Server Actions), Tailwind CSS, Lucide icons, Supabase (Postgres + Auth via `@supabase/ssr`), Google Sheets (CSV export + `papaparse`).
 
 ---
 
@@ -58,19 +58,17 @@ Share the sheet as **"Anyone with the link can view"**. Use exactly these header
 │   │   ├── dashboard/  page.tsx                       # Single table of all exams
 │   │   └── exams/
 │   │       ├── create/ page.tsx, CreateExamForm.tsx   # Sheet validation + exam code modal
-│   │       └── [id]/   page.tsx                       # Candidate results table + PDF buttons
+│   │       └── [id]/   page.tsx, review/, attempts/[attemptId]/  # Results table, question review, candidate report
 │   ├── dashboard/    layout.tsx, page.tsx, JoinExamCard.tsx
 │   ├── exam/[code]/
 │   │   ├── page.tsx                      # → instructions
 │   │   ├── instructions/ page.tsx, StartExamButton.tsx
 │   │   ├── live/         page.tsx, LiveExam.tsx      # Timer, navigator, localStorage, auto-submit
 │   │   └── result/       page.tsx
-│   └── api/scorecard/[attemptId]/route.ts            # PDF (owner or admin only)
 ├── components/   Logo.tsx, AppHeader.tsx, AuthShell.tsx, CopyButton.tsx, SubmitButton.tsx, ScoreSummary.tsx
 ├── lib/
 │   ├── googleSheets.ts                   # getSanitizedQuestions / getFullSheetData / validateSheet
 │   ├── grading.ts                        # sanitiseAnswers, gradeAttempt
-│   ├── pdf/ScorecardDocument.tsx         # React-PDF review report
 │   ├── supabase/ client.ts, server.ts, admin.ts, middleware.ts
 │   ├── auth.ts, examContext.ts, examCode.ts, password.ts, format.ts, types.ts
 └── public/icon.svg
@@ -80,7 +78,7 @@ Share the sheet as **"Anyone with the link can view"**. Use exactly these header
 
 ## 3. Security model
 
-- **Answer keys never reach the browser during an exam.** The live page only receives `getSanitizedQuestions()` output. `getFullSheetData()` is used only in `submitExam` and the PDF route. Both live in `server-only` modules.
+- **Answer keys never reach the browser during an exam.** The live page only receives `getSanitizedQuestions()` output. `getFullSheetData()` is used only in `submitExam` and the answer-review pages (after submission). Both live in `server-only` modules.
 - **`sheet_url` is never exposed to candidates.** RLS lets only admins read `exams`. Candidate pages resolve exam codes on the server with the service-role key and always filter by the signed-in user's id.
 - **Candidates can't write their own scores.** There are no client insert/update policies on `exam_attempts` or `candidate_answers`. All writes go through server actions.
 - **One attempt per exam** is enforced by `UNIQUE (exam_id, candidate_id)`. A candidate whose attempt is in progress can *resume* (the timer keeps running); a submitted attempt is blocked.
@@ -91,5 +89,4 @@ Share the sheet as **"Anyone with the link can view"**. Use exactly these header
 
 - **The generated password is guessable.** The spec's rule (first 4 characters of the email + first 4 letters of the name) means anyone who knows both can log in. Consider forcing a password change on first login.
 - **Public sheets.** Anyone who obtains the sheet URL can read the answers. The app never reveals it, but admins should not share it.
-- **Sheet edits after an exam** change the PDF review, which is re-read from the sheet at download time. Stored scores do not change.
-- **PDF fonts.** The PDF uses the built-in Helvetica font. Text in non-Latin scripts (e.g. Devanagari) needs a custom font registered with `Font.register`.
+- **Sheet edits after an exam** change the answer review, which is re-read from the sheet each time it is viewed. Stored scores do not change.

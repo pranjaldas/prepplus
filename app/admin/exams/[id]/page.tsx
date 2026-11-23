@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, BookOpenCheck, CalendarClock, Clock, Users } from 'lucide-react';
-import { DownloadPdfButton, ViewPdfButton } from '@/components/PdfButtons';
+import { ArrowLeft, BookOpenCheck, CalendarClock, Clock, FileText, Users } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { CopyButton } from '@/components/CopyButton';
@@ -82,7 +81,7 @@ export default async function ExamResultsPage({ params }: { params: { id: string
       <div className="card overflow-hidden">
         <div className="flex items-center gap-2 border-b border-slate-200 px-5 py-4">
           <Users className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold text-ink">Candidate scorecards</h2>
+          <h2 className="font-semibold text-ink">Candidate reports</h2>
         </div>
 
         {attempts.length === 0 ? (
@@ -120,10 +119,12 @@ export default async function ExamResultsPage({ params }: { params: { id: string
                         <span className="block text-base font-bold">{a.unanswered_count}</span>Unanswered
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <ViewPdfButton attemptId={a.id} label="View" className="btn-secondary py-2 text-xs" />
-                      <DownloadPdfButton attemptId={a.id} label="PDF" className="btn-primary py-2 text-xs" />
-                    </div>
+                    <Link
+                      href={`/admin/exams/${exam.id}/attempts/${a.id}`}
+                      className="btn-primary w-full py-2 text-xs"
+                    >
+                      <FileText className="h-3.5 w-3.5" /> View report
+                    </Link>
                   </>
                 )}
               </li>
@@ -140,7 +141,7 @@ export default async function ExamResultsPage({ params }: { params: { id: string
                   <th className="px-3 py-3 text-center">Wrong</th>
                   <th className="px-3 py-3 text-center">Unanswered</th>
                   <th className="px-3 py-3 text-center">Final score</th>
-                  <th className="px-5 py-3 text-right">Scorecard</th>
+                  <th className="px-5 py-3 text-right">Report</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -157,9 +158,13 @@ export default async function ExamResultsPage({ params }: { params: { id: string
                         <td className="px-3 py-3 text-center text-slate-500">{a.unanswered_count}</td>
                         <td className="px-3 py-3 text-center font-bold text-ink">{formatNumber(a.final_score)}</td>
                         <td className="px-5 py-3">
-                          <div className="flex justify-end gap-2">
-                            <ViewPdfButton attemptId={a.id} label="View" className="btn-secondary px-3 py-1.5 text-xs" />
-                            <DownloadPdfButton attemptId={a.id} label="PDF" className="btn-primary px-3 py-1.5 text-xs" />
+                          <div className="flex justify-end">
+                            <Link
+                              href={`/admin/exams/${exam.id}/attempts/${a.id}`}
+                              className="btn-primary px-3 py-1.5 text-xs"
+                            >
+                              <FileText className="h-3.5 w-3.5" /> View report
+                            </Link>
                           </div>
                         </td>
                       </>

@@ -18,19 +18,23 @@ const PILL: Record<ReviewStatus, { label: string; className: string; icon: React
 
 /**
  * One question in review mode. `mode="candidate"` shows the candidate's answer
- * (green if right, red if wrong) and the explanation, like the scorecard PDF.
+ * (green if right, red if wrong) and the explanation, like a printed scorecard.
  * `mode="admin"` shows only the question, options and the correct answer.
  */
 export function ReviewQuestionCard({
   question: q,
   mode,
   selected,
+  subject = 'you',
 }: {
   question: FullQuestion;
   mode: 'candidate' | 'admin';
   selected?: OptionKey;
+  /** Wording for the chosen answer: "Your answer" vs "Candidate's answer". */
+  subject?: 'you' | 'candidate';
 }) {
   const isCandidate = mode === 'candidate';
+  const answerLabel = subject === 'you' ? 'Your answer' : "Candidate's answer";
   const correctIdx = q.correct_key ? OPTION_KEYS.indexOf(q.correct_key) : -1;
   const selectedIdx = selected ? OPTION_KEYS.indexOf(selected) : -1;
   const status = reviewStatus(q, selected);
@@ -90,7 +94,7 @@ export function ReviewQuestionCard({
                     isCorrect ? 'text-emerald-700' : 'text-red-700'
                   }`}
                 >
-                  Your answer
+                  {answerLabel}
                 </span>
               )}
               {isCorrect && !isSelected && (
@@ -107,7 +111,7 @@ export function ReviewQuestionCard({
       <div className="mt-4 space-y-1 text-sm">
         {isCandidate && (
           <p className="text-slate-600">
-            Your answer:{' '}
+            {answerLabel}:{' '}
             <span
               className={`font-semibold ${
                 status === 'correct' ? 'text-emerald-700' : status === 'wrong' ? 'text-red-700' : 'text-slate-500'

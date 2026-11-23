@@ -50,7 +50,7 @@ export interface SanitizedQuestion {
   options: [string, string, string, string];
 }
 
-/** Full row, server only (grading and the review PDF). */
+/** Full row, server only (grading and the post-exam answer review). */
 export interface FullQuestion extends SanitizedQuestion {
   correct_option: string;
   /** Normalised correct option, or null if the sheet value can't be resolved. */

@@ -102,7 +102,7 @@ async function fetchSheetRows(sheetUrl: string): Promise<SheetRow[]> {
 
 /**
  * SERVER ONLY. Returns every column including correct_option and note.
- * Use for grading and the post-exam review PDF; never send it to a live exam.
+ * Use for grading and the post-exam answer review; never send it to a live exam.
  */
 export async function getFullSheetData(sheetUrl: string): Promise<FullQuestion[]> {
   const rows = await fetchSheetRows(sheetUrl);

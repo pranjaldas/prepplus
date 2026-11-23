@@ -8,9 +8,19 @@ interface ScoreSummaryProps {
   unanswered: number;
   score: number;
   maxScore: number;
+  /** Whose result this is: the signed-in candidate ("you") or someone an admin is viewing. */
+  subject?: 'you' | 'candidate';
 }
 
-export function ScoreSummary({ total, right, wrong, unanswered, score, maxScore }: ScoreSummaryProps) {
+export function ScoreSummary({
+  total,
+  right,
+  wrong,
+  unanswered,
+  score,
+  maxScore,
+  subject = 'you',
+}: ScoreSummaryProps) {
   const pct = (n: number) => (total > 0 ? (n / total) * 100 : 0);
   const scorePct = maxScore > 0 ? Math.max(0, (score / maxScore) * 100) : 0;
   const attempted = right + wrong;
@@ -47,7 +57,7 @@ export function ScoreSummary({ total, right, wrong, unanswered, score, maxScore 
             <span className="text-lg font-semibold">Final Score</span>
           </div>
           <p className="text-sm text-slate-600">
-            You attempted <strong>{attempted}</strong> of <strong>{total}</strong> questions with{' '}
+            {subject === 'you' ? 'You' : 'The candidate'} attempted <strong>{attempted}</strong> of <strong>{total}</strong> questions with{' '}
             <strong>{accuracy.toFixed(0)}%</strong> accuracy.
           </p>
           <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100">

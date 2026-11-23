@@ -14,7 +14,16 @@ const FILTERS: { key: Filter; label: string; active: string }[] = [
   { key: 'unanswered', label: 'Unanswered', active: 'bg-slate-600 text-white' },
 ];
 
-export function AnswerReview({ questions, answers }: { questions: FullQuestion[]; answers: AnswersMap }) {
+export function AnswerReview({
+  questions,
+  answers,
+  subject = 'you',
+}: {
+  questions: FullQuestion[];
+  answers: AnswersMap;
+  /** "you" on the candidate's own scorecard, "candidate" when an admin views it. */
+  subject?: 'you' | 'candidate';
+}) {
   const [filter, setFilter] = useState<Filter>('all');
 
   const withStatus = useMemo(
@@ -57,7 +66,13 @@ export function AnswerReview({ questions, answers }: { questions: FullQuestion[]
       ) : (
         <ol className="space-y-4">
           {visible.map(({ q }) => (
-            <ReviewQuestionCard key={q.index} question={q} mode="candidate" selected={answers[String(q.index)]} />
+            <ReviewQuestionCard
+              key={q.index}
+              question={q}
+              mode="candidate"
+              selected={answers[String(q.index)]}
+              subject={subject}
+            />
           ))}
         </ol>
       )}

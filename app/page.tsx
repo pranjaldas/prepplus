@@ -28,7 +28,7 @@ const FEATURES = [
   },
   {
     icon: FileText,
-    title: 'PDF review reports',
+    title: 'Detailed answer review',
     text: 'Question-by-question breakdown with correct answers and explanations to learn from.',
   },
 ];
@@ -60,7 +60,7 @@ export default async function HomePage() {
 
       <main>
         <section className="mx-auto max-w-6xl px-4 pb-20 pt-16 text-center sm:pt-24">
-          <span className="badge mb-6 bg-white/10 text-indigo-100">Mock exams · Live scoring · PDF review</span>
+          <span className="badge mb-6 bg-white/10 text-indigo-100">Mock exams · Live scoring · Answer review</span>
           <h1 className="mx-auto max-w-3xl text-4xl font-extrabold tracking-tight text-white sm:text-6xl">
             Precision Mock Exams &amp;{' '}
             <span className="bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">

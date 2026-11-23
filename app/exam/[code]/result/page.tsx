@@ -11,7 +11,7 @@ import { getFullSheetData, SheetError } from '@/lib/googleSheets';
 import { sanitiseAnswers } from '@/lib/grading';
 import { formatDateTime, markingSummary } from '@/lib/format';
 import type { AnswersMap, FullQuestion } from '@/lib/types';
-import { AnswerReview } from './AnswerReview';
+import { AnswerReview } from '@/components/AnswerReview';
 
 export const metadata: Metadata = { title: 'Scorecard' };
 export const dynamic = 'force-dynamic';
